@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="get_data_from_sfdcFlow1" doc:id="dd71dfde-5b13-4f86-a214-a78c7bf43d1d" >
+		<salesforce:query-all doc:name="Query all" doc:id="e827ba70-1ff2-40ec-98ae-e3e385c49cd3" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[select id, type, name from :tablename1 limit 2]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	"tablename1" : attributes.queryParams.migration
+}]]]></salesforce:parameters>
+		</salesforce:query-all>
+		<ee:transform doc:name="Transform Message" doc:id="ac89888b-4b68-41a3-834f-cae4f8ce621a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	
+</mule>
