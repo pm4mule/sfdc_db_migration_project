@@ -10,7 +10,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
 	
 	<http:listener-config name="sfdc_db_api-httpListenerConfig">
-        <http:listener-connection host="localhost" port="8081" />
+        <http:listener-connection host="${http.listener.host}" port="${http.listener.port}" />
     </http:listener-config>
     <apikit:config name="sfdc_db_api-config" api="resource::01b49529-fb52-4872-90ae-de61ab4381c4:sfdc_db:1.0.1:raml:zip:sfdc_db_api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
 	<configuration-properties doc:name="Configuration properties" doc:id="80f05a63-e950-4a32-aa30-57537486856b" file="config/dev.yaml" />
