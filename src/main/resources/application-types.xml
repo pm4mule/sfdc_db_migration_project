@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="Account_output" format="json">
+      <types:shape format="weave" example="examples/Account_output-1.json"><![CDATA[%dw 2.0
+
+type Account_output = Array<{|  LastModifiedDate: String,   Id: String,   "type": String,   Name: String|}> {"example": "[{\\\"LastModifiedDate\\\":\\\"2021-05-25T05:22:08.000Z\\\",\\\"Id\\\":\\\"0015g00000EDN7QAAX\\\",\\\"type\\\":\\\"Account\\\",\\\"Name\\\":\\\"Edge Communications\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="input_Accounts" format="json">
+      <types:shape format="weave" example="examples/Account_input-1.json"><![CDATA[%dw 2.0
+
+type input_Accounts = Array<{|  LastModifiedDate: String,   IsDeleted: String,   Type: Null,   Id: String,   "type": String,   Name: String|}> {"example": "[{\\\"LastModifiedDate\\\":\\\"2021-05-25T05:22:08.000Z\\\",\\\"IsDeleted\\\":\\\"false\\\",\\\"Type\\\":null,\\\"Id\\\":\\\"0015g00000EDN7QAAX\\\",\\\"type\\\":\\\"Account\\\",\\\"Name\\\":\\\"Edge Communications\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#724bd08b-2276-4774-aee9-26658f3da437">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="input_Accounts"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="Account_output"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

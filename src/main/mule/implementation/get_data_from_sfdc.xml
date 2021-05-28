@@ -1,27 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<os:object-store name="objStore_sfdc" doc:name="Object store" doc:id="f5d5a261-f260-4ef8-92a1-18d05fbcc56e" persistent="false" entryTtl="5" maxEntries="100" entryTtlUnit="HOURS"/>
+	<flow name="add_data_from_sfdcFlow_to_DB" doc:id="5309a4de-df7f-4e03-ab69-a6ef9cdd290f" >
+		<batch:job jobName="add_data_from_sfdcBatch_Job" doc:id="8a701ac3-a6ea-487c-80f9-01eddb1caa5d" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="3053b100-bd34-4227-b4e8-9a66087a0b11" acceptPolicy="ALL">
+					<logger level="INFO" doc:name="Logger" doc:id="4cd6ad6d-128a-4e5f-9b81-ad2f7ee47666" message="#[payload]"/>
+					<logger level="INFO" doc:name="Logger" doc:id="af089231-fa96-4400-a270-83325c0c8735" message="srinivas"/>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="12674c0c-d205-4b53-87b0-83f90b554e38" size="3">
+						<logger level="INFO" doc:name="Logger" doc:id="c33be2dc-f09c-4c68-b1e6-a5b95b563746" message='#["processed records are" ++ payload]'/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+		</batch:job>
+	</flow>
 	<flow name="get_data_from_sfdcFlow1" doc:id="dd71dfde-5b13-4f86-a214-a78c7bf43d1d" >
-		<salesforce:query-all doc:name="Query all" doc:id="e827ba70-1ff2-40ec-98ae-e3e385c49cd3" config-ref="Salesforce_Config">
-			<salesforce:salesforce-query ><![CDATA[select id, type, name from :tablename1 limit 2]]></salesforce:salesforce-query>
-			<salesforce:parameters ><![CDATA[#[output application/java
----
-{
-	"tablename1" : attributes.queryParams.migration
-}]]]></salesforce:parameters>
+		<choice doc:name="Choice" doc:id="c451d1e7-0565-417c-ac78-0f480761e53a" >
+			<when expression='#[vars.qtablename == "Account"]'>
+				<salesforce:query-all doc:name="Query all" doc:id="e827ba70-1ff2-40ec-98ae-e3e385c49cd3" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[SELECT LastModifiedDate, Id, IsDeleted, Name, Type FROM Account limit 2]]></salesforce:salesforce-query>
 		</salesforce:query-all>
+				<ee:transform doc:name="Transform Message" doc:id="724bd08b-2276-4774-aee9-26658f3da437">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	Id: payload01.Id,
+	"type": payload01."type",
+	Name: payload01.Name
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="Flow Reference" doc:id="60ce33e0-adfd-4f9e-b5c7-13f2a12bcc67" name="add_data_from_sfdcFlow_to_DB"/>
+			</when>
+			<when expression='#[vars.qtablename == "Lead"]'>
+				<salesforce:query-all doc:name="Query all" doc:id="f65e1813-af09-46db-89e0-18aa39b4d47f" config-ref="Salesforce_Config">
+					<salesforce:salesforce-query ><![CDATA[SELECT Id, IsDeleted, LastName, FirstName, Salutation, Name, Title, Company, Street, City, State, PostalCode, Country, LastModifiedDate FROM Lead]]></salesforce:salesforce-query>
+				</salesforce:query-all>
+				<db:bulk-insert doc:name="Bulk insert" doc:id="d15857a7-4856-463b-8622-388db07582d8" config-ref="Database_Config">
+					<db:sql><![CDATA[insert into Accounts (Id, type, Name) values (:Id, :type, :Name)]]></db:sql>
+				</db:bulk-insert>
+			</when>
+			<when expression='vars.qtablename == "Opportunity"'>
+				<salesforce:query-all doc:name="Query all" doc:id="04ffe8d0-0c48-4548-94bc-fc128a4ac28c" config-ref="Salesforce_Config">
+					<salesforce:salesforce-query ><![CDATA[SELECT Id, IsDeleted, Name, Description, StageName, Amount, Probability, ExpectedRevenue, TotalOpportunityQuantity, LastModifiedDate FROM Opportunity]]></salesforce:salesforce-query>
+				</salesforce:query-all>
+			</when>
+		</choice>
 		<ee:transform doc:name="Transform Message" doc:id="ac89888b-4b68-41a3-834f-cae4f8ce621a" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload]]></ee:set-payload>
+{
+	"code":200,
+	"message": "Success"
+}]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="queryname" ><![CDATA[attributes.QueryParams.migration]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="139d3759-0a2c-44ee-9a71-ae3723f3bc06" message='#[payload]'/>
 	</flow>
 	
 </mule>

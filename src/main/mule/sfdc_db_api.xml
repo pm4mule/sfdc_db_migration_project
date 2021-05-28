@@ -122,7 +122,9 @@ output application/json
         </error-handler>
     </flow>
     <flow name="get:\migration:sfdc_db_api-config">
+		<set-variable value="#[attributes.queryParams.migration]" doc:name="Set Variable" doc:id="80090f6f-ead5-475b-a7e8-51b9baab2e6a" variableName="qtablename"/>
 		<flow-ref doc:name="Flow Reference" doc:id="67c9bc5a-9adb-42a1-9adc-f4c7fa7ac2b3" name="get_data_from_sfdcFlow1"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ed041fe4-ef17-4558-8240-d9d1f46e6391" />
     </flow>
     
     

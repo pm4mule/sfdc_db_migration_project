@@ -1,9 +1,17 @@
 http:
   listener:
     port: "8081"
-    host: "localhost"
+    host: "0.0.0.0"
     path: "/migration"
 sfdc:
-  username: srinivas4ruby@gmail.com
-  password: D@Cha3A^t!
-  securitytoken: dQTdTQUhQFISocD06sRiW2cC
+  username: "![ieuxPuhLYAImqDJ91tinOielNowbcMtk]"
+  password: "![NxIv3MJyqtzksEHDU+r5fg==]"
+  securitytoken: "![BV2BGKOSssfGUDZ9JnjWZd6hfKGVE7yRQziiZP5qI2g=]"
+  
+db:
+  mysql:
+    host: "localhost"
+    port: "3306"
+    user: "root"
+    password: "![ltYXHZgBunp+B2BZ5+ulAA==]"
+    database: "sfdc"
